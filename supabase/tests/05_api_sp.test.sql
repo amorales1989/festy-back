@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(31);
+select plan(34);
 
 insert into auth.users (id, email, aud, role) values
   ('dddddddd-0000-0000-0000-000000000001', 'duenia@api.test', 'authenticated', 'authenticated'),
@@ -101,6 +101,17 @@ select throws_ok(format($$select api.sp_eliminar('reservas', %L)$$, (select id f
 select throws_ok(format($$select api.sp_pago_registrar(%L, '{"monto":1,"fecha":"2027-01-10","medio":"efectivo","concepto":"cuota"}')$$,
   (select id from k where clave='res')), null, null, 'el intruso no registra cobros');
 select is(api.sp_exportar((select id from k where clave='org'))->'clientes', 'null'::jsonb, 'el intruso no exporta clientes');
+
+-- Cuenta de demostración: no se le cambia la contraseña ni el email
+select pg_temp.admin();
+insert into auth.users (id, email, aud, role, encrypted_password, raw_app_meta_data) values
+  ('dddddddd-0000-0000-0000-0000000000de', 'demo@api.test', 'authenticated', 'authenticated', 'hash-original', '{"demo": true}');
+select throws_ok($$update auth.users set encrypted_password = 'otro-hash' where id = 'dddddddd-0000-0000-0000-0000000000de'$$,
+  '42501', null, 'la cuenta demo no cambia su contraseña');
+select throws_ok($$update auth.users set email = 'robada@api.test' where id = 'dddddddd-0000-0000-0000-0000000000de'$$,
+  '42501', null, 'la cuenta demo no cambia su email');
+select lives_ok($$update auth.users set encrypted_password = 'otro-hash' where id = 'dddddddd-0000-0000-0000-000000000001'$$,
+  'una cuenta normal sí cambia su contraseña');
 
 select * from finish();
 rollback;
