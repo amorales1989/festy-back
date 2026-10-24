@@ -15,7 +15,6 @@ const router = express.Router({ mergeParams: true })
 // Organización
 router.get('/contexto', organizacionControlador.contexto)
 router.patch('/', organizacionControlador.actualizar)
-router.put('/plan', organizacionControlador.cambiarPlan)
 router.post('/baja', organizacionControlador.solicitarBaja)
 router.delete('/baja', organizacionControlador.cancelarBaja)
 router.get('/checklist', organizacionControlador.checklist)

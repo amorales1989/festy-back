@@ -75,8 +75,8 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 
 | Área | Endpoints |
 |---|---|
-| Sesión | `GET /perfil` · `PUT /perfil/organizacion` · `GET/POST /organizaciones` · `GET /planes` · `GET /notificaciones` · `POST /notificaciones/leer` · `POST /dispositivos` · `DELETE /dispositivos/:token` · `GET /invitaciones/:token` (pública) · `POST /invitaciones/:token/aceptar` |
-| Organización | `GET /organizaciones/:org/contexto` (org, permisos, rol, plan y sedes) · `PATCH /organizaciones/:org` · `PUT …/plan` · `POST/DELETE …/baja` · `GET …/checklist` · `POST/DELETE …/ejemplos` · `GET …/panel` · `GET …/buscar?q=` · `GET …/miembros` · `GET …/exportar` · `POST …/importar/clientes` · `POST …/importar/reservas` |
+| Sesión | `GET /perfil` · `PUT /perfil/organizacion` · `GET/POST /organizaciones` · `GET /notificaciones` · `POST /notificaciones/leer` · `POST /dispositivos` · `DELETE /dispositivos/:token` · `GET /invitaciones/:token` (pública) · `POST /invitaciones/:token/aceptar` |
+| Organización | `GET /organizaciones/:org/contexto` (org, permisos, rol, plan y sedes) · `PATCH /organizaciones/:org` · `POST/DELETE …/baja` · `GET …/checklist` · `POST/DELETE …/ejemplos` · `GET …/panel` · `GET …/buscar?q=` · `GET …/miembros` · `GET …/exportar` · `POST …/importar/clientes` · `POST …/importar/reservas` |
 | Sedes | `POST/PUT …/salones[/:id]` · `POST/PUT …/sucursales[/:id]` · `POST/PUT …/espacios[/:id]` (`{ datos, horarios }`) · `GET /espacios/:id/horarios` · `GET/POST/PUT …/recursos` · `GET/POST …/feriados` |
 | Clientes | `GET …/clientes?q&limite&desplazamiento` · `GET …/clientes/buscar?q` · `POST/PUT …/clientes[/:id]` · `GET /clientes/:id` (con eventos y presupuestos) |
 | Reservas | `GET …/reservas?estado&contrato&desde&hasta&sucursal&texto&limite&desplazamiento` · `POST/PUT …/reservas[/:id]` (`{ datos, espacios }`) · `GET /reservas/:id` · `GET /reservas/:id/ficha` · `PATCH /reservas/:id/estado` · `PATCH /reservas/:id/contrato` · `POST /reservas/:id/items` · `POST …/disponibilidad` · `GET …/agenda` · `POST …/bloqueos` |

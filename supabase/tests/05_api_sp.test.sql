@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(29);
+select plan(31);
 
 insert into auth.users (id, email, aud, role) values
   ('dddddddd-0000-0000-0000-000000000001', 'duenia@api.test', 'authenticated', 'authenticated'),
@@ -42,6 +42,11 @@ insert into k select 'esp', (api.sp_espacio_guardar((select id from k where clav
 select is(jsonb_array_length(api.sp_organizaciones_listar()), 1, 'lista sus organizaciones');
 select ok(api.sp_organizacion_contexto((select id from k where clave='org'))->'permisos' ? 'reservas.crear', 'el contexto trae los permisos del rol');
 select is(jsonb_array_length(api.sp_organizacion_contexto((select id from k where clave='org'))->'espacios'), 1, 'el contexto trae los espacios');
+select is((select plan_clave || '/' || suscripcion_estado || '/' || coalesce(prueba_hasta::text, 'sin prueba')
+            from public.organizaciones where id = (select id from k where clave='org')),
+  'festy/activa/sin prueba', 'plan único: la organización nueva queda activa y sin período de prueba');
+select is((select count(*)::int from public.rol_permisos where organizacion_id = (select id from k where clave='org') and permiso = 'plan.gestionar'),
+  0, 'no existe el permiso de cambiar de plan');
 
 -- Clientes
 insert into k select 'cli', (api.sp_cliente_guardar((select id from k where clave='org'), null,

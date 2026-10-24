@@ -6,11 +6,6 @@ export const contexto = async (req, res) => res.json(await organizacionRepositor
 
 export const actualizar = async (req, res) => res.json(await organizacionRepositorio.actualizar(req.usuario, req.params.org, req.body))
 
-export const cambiarPlan = async (req, res) => {
-    await organizacionRepositorio.cambiarPlan(req.usuario, req.params.org, req.body.plan)
-    sinContenido(res)
-}
-
 export const solicitarBaja = async (req, res) =>
     res.json({ eliminar_desde: await organizacionRepositorio.solicitarBaja(req.usuario, req.params.org, req.body.confirmacion) })
 

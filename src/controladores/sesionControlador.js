@@ -16,8 +16,6 @@ export const crearOrganizacion = async (req, res) => {
     creado(res, { id: await sesionRepositorio.crearOrganizacion(req.usuario, nombre, zona_horaria) })
 }
 
-export const listarPlanes = async (req, res) => res.json(await sesionRepositorio.listarPlanes(req.usuario))
-
 export const listarNotificaciones = async (req, res) => res.json(await sesionRepositorio.listarNotificaciones(req.usuario))
 
 export const leerNotificaciones = async (req, res) => {

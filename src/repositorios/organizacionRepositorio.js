@@ -2,7 +2,6 @@ import { ejecutarSp, json } from '../config/db.js'
 
 export const contexto = (ctx, org) => ejecutarSp(ctx, 'sp_organizacion_contexto', { p_org: org })
 export const actualizar = (ctx, org, datos) => ejecutarSp(ctx, 'sp_organizacion_actualizar', { p_org: org, p_datos: datos })
-export const cambiarPlan = (ctx, org, plan) => ejecutarSp(ctx, 'sp_plan_cambiar', { p_org: org, p_plan: plan })
 export const solicitarBaja = (ctx, org, confirmacion) => ejecutarSp(ctx, 'sp_baja_solicitar', { p_org: org, p_confirmacion: confirmacion })
 export const cancelarBaja = (ctx, org) => ejecutarSp(ctx, 'sp_baja_cancelar', { p_org: org })
 export const checklist = (ctx, org) => ejecutarSp(ctx, 'sp_checklist', { p_org: org })
