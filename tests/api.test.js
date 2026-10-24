@@ -231,6 +231,18 @@ describe('cuentas: alta de empresas por el administrador e invitados', () => {
         // Repetir el alta con el mismo email no duplica la cuenta: le suma otra empresa
         const r2 = await admin('POST', '/api/plataforma/empresas', { empresa: 'Segunda Sede', email })
         assert.equal(r2.datos.cuenta_nueva, false)
+        // Cobro de la suscripción: precio, pago y "pagado hasta"
+        const id = r.datos.organizacion_id
+        assert.equal((await admin('PUT', `/api/plataforma/empresas/${id}/precio`, { precio: 30000 })).estado, 204)
+        const pago = await admin('POST', `/api/plataforma/empresas/${id}/pagos`, { fecha: '2027-01-10', monto: 60000, meses: 2, medio: 'mercadopago' })
+        assert.equal(pago.estado, 201)
+        assert.equal(pago.datos.cubre_hasta, '2027-03-10')
+        const fila = (await admin('GET', '/api/plataforma/empresas')).datos.find((e) => e.id === id)
+        assert.equal(fila.precio, 30000)
+        assert.equal(fila.pagado_hasta, '2027-03-10')
+        assert.equal(fila.ultimo_pago.medio, 'mercadopago')
+        assert.equal((await duenio('GET', `/api/plataforma/empresas/${id}/pagos`)).estado, 403)  // el dueño no ve ni registra su cobro
+        assert.equal((await admin('DELETE', `/api/plataforma/pagos/${pago.datos.id}`)).estado, 204)
     })
 
     test('un invitado crea su cuenta solo con una invitación válida', async () => {

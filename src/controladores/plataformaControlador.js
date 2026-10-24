@@ -21,3 +21,23 @@ export const crearEmpresa = async (req, res) => {
     })
     res.status(201).json({ organizacion_id: orgId, usuario_id: usuarioId, cuenta_nueva: cuentaNueva })
 }
+
+// --- Cobro de la suscripción (fuera de la app) ---------------------------------
+export const cambiarPrecio = async (req, res) => {
+    const precio = req.body?.precio === null || req.body?.precio === '' ? null : Number(req.body?.precio)
+    if (precio !== null && !(precio >= 0)) throw new ErrorApi(400, 'PRECIO', 'El precio no es válido.')
+    await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_precio', { p_org: req.params.id, p_precio: precio })
+    res.status(204).end()
+}
+
+export const listarPagos = async (req, res) => res.json(await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_pagos', { p_org: req.params.id }))
+
+export const registrarPago = async (req, res) =>
+    res.status(201).json(await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_pago_registrar', {
+        p_org: req.params.id, p_datos: req.body ?? {}, p_registrado_por: req.usuario.claims.email,
+    }))
+
+export const eliminarPago = async (req, res) => {
+    await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_pago_eliminar', { p_id: req.params.id })
+    res.status(204).end()
+}

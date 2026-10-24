@@ -89,7 +89,7 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 | Gastos y tareas | `GET/POST/PUT …/gastos` · `GET/POST/PUT …/tareas` · `PATCH /tareas/:id/estado` |
 | Ventas | `GET/POST/PUT …/servicios` · `GET/POST/PUT …/presupuestos` · `GET /presupuestos/:id` · `POST /presupuestos/:id/aceptar` · `GET/POST/PUT …/entrevistas` · `GET /entrevistas/:id` |
 | Equipo | `GET …/roles` · `GET …/roles/matriz` · `PUT …/roles/permisos` · `GET/POST …/invitaciones` · `DELETE /invitaciones/:id` · `PATCH /membresias/:id` · `GET …/auditoria` |
-| Plataforma (solo administradores) | `GET /plataforma/yo` · `GET /plataforma/empresas` · `POST /plataforma/empresas` (crea la cuenta del dueño y su empresa) · pública con límite: `POST /invitaciones/:token/cuenta` (el invitado crea su cuenta) |
+| Plataforma (solo administradores) | `GET /plataforma/yo` · `GET /plataforma/empresas` · `POST /plataforma/empresas` (crea la cuenta del dueño y su empresa) · `PUT /plataforma/empresas/:id/precio` · `GET/POST /plataforma/empresas/:id/pagos` · `DELETE /plataforma/pagos/:id` (cobro de la suscripción) · pública con límite: `POST /invitaciones/:token/cuenta` (el invitado crea su cuenta) |
 | Genéricos | `DELETE /registros/:entidad/:id` · `PATCH /registros/:entidad/:id/activo` |
 
 ## Despliegue en el VPS
