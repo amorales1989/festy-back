@@ -32,6 +32,7 @@ router.post('/importar/clientes', organizacionControlador.importarClientes)
 router.post('/importar/reservas', organizacionControlador.importarReservas)
 
 // Sedes
+router.post('/salones/nuevo', sedeControlador.crearSalon)
 router.post('/salones', sedeControlador.guardarSalon)
 router.put('/salones/:id', sedeControlador.guardarSalon)
 router.post('/sucursales', sedeControlador.guardarSucursal)

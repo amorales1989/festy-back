@@ -29,3 +29,6 @@ export const crearFeriado = async (req, res) => {
     await sedeRepositorio.crearFeriado(req.usuario, req.params.org, req.body.fecha, req.body.nombre)
     sinContenido(res)
 }
+
+// Alta simple: salón (lugar físico) + su espacio principal.
+export const crearSalon = async (req, res) => creado(res, await sedeRepositorio.crearSalon(req.usuario, req.params.org, req.body))

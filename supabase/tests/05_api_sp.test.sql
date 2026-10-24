@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(34);
+select plan(37);
 
 insert into auth.users (id, email, aud, role) values
   ('dddddddd-0000-0000-0000-000000000001', 'duenia@api.test', 'authenticated', 'authenticated'),
@@ -47,6 +47,14 @@ select is((select plan_clave || '/' || suscripcion_estado || '/' || coalesce(pru
   'festy/activa/sin prueba', 'plan único: la organización nueva queda activa y sin período de prueba');
 select is((select count(*)::int from public.rol_permisos where organizacion_id = (select id from k where clave='org') and permiso = 'plan.gestionar'),
   0, 'no existe el permiso de cambiar de plan');
+
+-- Alta simple de un salón: crea la sede y su espacio principal
+insert into k select 'rapido', (api.sp_salon_crear((select id from k where clave='org'), '{"nombre":"Quinta Norte","direccion":"Ruta 8 km 50","capacidad_maxima":220}')->>'espacio_id')::uuid;
+select is((select e.nombre || '/' || e.capacidad_maxima || '/' || su.nombre from public.espacios e join public.sucursales su on su.id = e.sucursal_id
+            where e.id = (select id from k where clave='rapido')), 'Quinta Norte/220/Quinta Norte', 'el salón nuevo queda con su espacio principal');
+select is((select count(*)::int from public.salones where organizacion_id = (select id from k where clave='org')), 1, 'reutiliza la marca existente');
+select throws_ok(format($$select api.sp_salon_crear(%L, '{"nombre":"Sin capacidad"}')$$, (select id from k where clave='org')), '23514', null,
+  'pide la capacidad');
 
 -- Clientes
 insert into k select 'cli', (api.sp_cliente_guardar((select id from k where clave='org'), null,
