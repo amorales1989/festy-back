@@ -1,0 +1,34 @@
+# Festy · entrada a la API.
+# - {$API_DOMINIO}: dominio público (ej. api.festy.com.ar) con HTTPS automático.
+# - :8000: acceso sin TLS (si usás Traefik/Easypanel como proxy externo).
+# Solo se publican /api (API de Festy) y /auth/v1 (GoTrue). La base no se expone.
+
+(rutas) {
+	encode gzip
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	handle_path /auth/v1/* {
+		reverse_proxy auth:9999
+	}
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+	handle /salud {
+		reverse_proxy api:4000
+	}
+	handle {
+		respond "No encontrado" 404
+	}
+}
+
+{$API_DOMINIO} {
+	import rutas
+}
+
+:8000 {
+	import rutas
+}
