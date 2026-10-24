@@ -1,0 +1,31 @@
+# Entrada interna de Festy en Coolify. Traefik (de Coolify) termina el HTTPS y
+# reenvía acá; solo se publican /api (API de Festy) y /auth/v1 (GoTrue).
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:8000 {
+	encode gzip
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	handle_path /auth/v1/* {
+		reverse_proxy auth:9999
+	}
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+	handle /salud {
+		reverse_proxy api:4000
+	}
+	handle {
+		respond "No encontrado" 404
+	}
+}

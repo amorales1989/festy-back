@@ -1,7 +1,6 @@
 node_modules
 .env*
+despliegue/.env
+despliegue/respaldos
 tests
-supabase
-despliegue
-scripts
 *.md

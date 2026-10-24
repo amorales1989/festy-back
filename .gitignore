@@ -5,3 +5,5 @@ despliegue/.env
 despliegue/respaldos/
 supabase/.temp/
 supabase/.branches/
+.env.*
+!.env.example

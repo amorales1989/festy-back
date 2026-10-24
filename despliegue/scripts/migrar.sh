@@ -5,7 +5,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CONTENEDOR="${CONTENEDOR_DB:-festy-db}"
-psql_db() { docker exec -i "$CONTENEDOR" psql -v ON_ERROR_STOP=1 -U postgres -d postgres -h localhost -qtA "$@"; }
+if [ -n "${PGHOST:-}" ]; then
+  # Modo directo (servicio "migrador" en Coolify): psql por red con PGHOST/PGPASSWORD.
+  psql_db() { psql -v ON_ERROR_STOP=1 -U postgres -d postgres -qtA "$@"; }
+else
+  psql_db() { docker exec -i "$CONTENEDOR" psql -v ON_ERROR_STOP=1 -U postgres -d postgres -h localhost -qtA "$@"; }
+fi
 
 # Privilegios por defecto iguales a los de la CLI de Supabase (donde corren las
 # pruebas): lo nuevo en public NO queda abierto a anon/authenticated; cada

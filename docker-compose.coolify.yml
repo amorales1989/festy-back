@@ -1,0 +1,133 @@
+# Festy en Coolify (recurso "Docker Compose" desde este repo).
+# Coolify asigna el dominio al servicio "gateway" (puerto 8000) y pone el HTTPS.
+# Ningún servicio publica puertos en el VPS. Variables: ver despliegue/coolify/README.md.
+services:
+  db:
+    build:
+      context: .
+      dockerfile: despliegue/coolify/db.Dockerfile
+    restart: unless-stopped
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
+    volumes:
+      - festy-db-datos:/var/lib/postgresql/data
+      - festy-db-config:/etc/postgresql-custom
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      JWT_EXP: ${JWT_EXPIRY:-3600}
+      TZ: America/Argentina/Buenos_Aires
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  auth:
+    image: supabase/gotrue:v2.197.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${URL_PUBLICA_API}/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${URL_FRONT}
+      GOTRUE_URI_ALLOW_LIST: ${URLS_REDIRECCION_EXTRA:-}
+      GOTRUE_DISABLE_SIGNUP: ${DESACTIVAR_REGISTRO:-false}
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_ISSUER: ${URL_PUBLICA_API}/auth/v1
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: ${AUTOCONFIRMAR_EMAIL:-true}
+      GOTRUE_PASSWORD_MIN_LENGTH: 8
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_REMITENTE:-}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SMTP_PUERTO:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USUARIO:-}
+      GOTRUE_SMTP_PASS: ${SMTP_CLAVE:-}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_NOMBRE:-Festy}
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "Confirmá tu cuenta de Festy"
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: "Recuperá tu contraseña de Festy"
+      GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: "Confirmá tu nuevo email"
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: 30
+
+  # Corre las migraciones pendientes y termina (necesita las tablas de auth de GoTrue).
+  migrador:
+    build:
+      context: .
+      dockerfile: despliegue/coolify/migrador.Dockerfile
+    restart: "no"
+    exclude_from_hc: true
+    depends_on:
+      auth:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      migrador:
+        condition: service_completed_successfully
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgresql://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      AUTH_JWKS_URL: http://auth:9999/.well-known/jwks.json
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${URL_PUBLICA_API}/auth/v1
+      ORIGENES_PERMITIDOS: ${URL_FRONT},https://localhost,capacitor://localhost,http://localhost
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+      TZ: America/Argentina/Buenos_Aires
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/salud"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build:
+      context: .
+      dockerfile: despliegue/coolify/gateway.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/salud"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  festy-db-datos:
+  festy-db-config:
