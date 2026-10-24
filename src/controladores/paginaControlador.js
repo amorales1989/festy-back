@@ -11,3 +11,10 @@ export const pedido = async (req, res) => {
     if (req.body?.sitio_web) return res.status(201).json({ ok: true })
     res.status(201).json(await paginaRepositorio.pedido(req.params.slug, req.body ?? {}))
 }
+
+export const pedidosPendientes = async (req, res) => res.json(await paginaRepositorio.pedidosPendientes(req.usuario, req.params.org))
+
+export const marcarAtendido = async (req, res) => {
+    await paginaRepositorio.marcarAtendido(req.usuario, req.params.id)
+    res.status(204).end()
+}

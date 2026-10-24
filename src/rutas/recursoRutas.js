@@ -8,6 +8,7 @@ import * as tareaControlador from '../controladores/tareaControlador.js'
 import * as ventaControlador from '../controladores/ventaControlador.js'
 import * as equipoControlador from '../controladores/equipoControlador.js'
 import * as proveedorControlador from '../controladores/proveedorControlador.js'
+import * as paginaControlador from '../controladores/paginaControlador.js'
 
 // Operaciones sobre un registro por su id (la organización sale del propio registro).
 const router = express.Router()
@@ -29,6 +30,7 @@ router.post('/reservas/:id/garantia/devolucion', cobroControlador.devolverGarant
 router.get('/reservas/:id/costos', proveedorControlador.costosEvento)
 router.post('/reservas/:id/costos/catalogo', proveedorControlador.costosDesdeCatalogo)
 router.post('/costos/:id/pagos', proveedorControlador.pagarCosto)
+router.post('/reservas/:id/pedido-web/atendido', paginaControlador.marcarAtendido)
 
 router.get('/pagos/:id/comprobante', cobroControlador.comprobante)
 router.patch('/pagos/:id/anular', cobroControlador.anularPago)

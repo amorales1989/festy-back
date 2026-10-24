@@ -84,7 +84,7 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 | Garantías | `GET …/garantias` · `PUT/DELETE /reservas/:id/garantia` · `POST /reservas/:id/garantia/cobro` · `POST /reservas/:id/garantia/devolucion` |
 | Caja | `GET/POST/PUT …/cuentas` · `GET …/caja?desde&hasta` (saldos por cuenta y movimientos) · `POST …/transferencias` |
 | Proveedores y rentabilidad | `GET/POST/PUT …/proveedores` · `POST/PUT …/costos` · `GET /reservas/:id/costos` · `POST /reservas/:id/costos/catalogo` · `POST /costos/:id/pagos` (registra el gasto) · `GET …/rentabilidad?desde&hasta` |
-| Página pública | `PUT …/pagina` (configuración) · sin sesión y con límite por IP: `GET /publico/:slug` · `GET /publico/:slug/ocupacion?desde&hasta` · `POST /publico/:slug/pedidos` |
+| Página pública | `PUT …/pagina` (configuración) · `GET …/pedidos-web` (pedidos sin atender) · `POST /reservas/:id/pedido-web/atendido` · sin sesión y con límite por IP: `GET /publico/:slug` · `GET /publico/:slug/ocupacion?desde&hasta` · `POST /publico/:slug/pedidos` |
 | Gastos y tareas | `GET/POST/PUT …/gastos` · `GET/POST/PUT …/tareas` · `PATCH /tareas/:id/estado` |
 | Ventas | `GET/POST/PUT …/servicios` · `GET/POST/PUT …/presupuestos` · `GET /presupuestos/:id` · `POST /presupuestos/:id/aceptar` · `GET/POST/PUT …/entrevistas` · `GET /entrevistas/:id` |
 | Equipo | `GET …/roles` · `GET …/roles/matriz` · `PUT …/roles/permisos` · `GET/POST …/invitaciones` · `DELETE /invitaciones/:id` · `PATCH /membresias/:id` · `GET …/auditoria` |

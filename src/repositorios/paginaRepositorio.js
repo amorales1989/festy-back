@@ -6,3 +6,7 @@ export const guardar = (ctx, org, datos) => ejecutarSp(ctx, 'sp_pagina_guardar',
 export const salon = (slug) => ejecutarSp(CONTEXTO_ANONIMO, 'sp_publico_salon', { p_slug: slug })
 export const ocupacion = (slug, desde, hasta) => ejecutarSp(CONTEXTO_ANONIMO, 'sp_publico_ocupacion', { p_slug: slug, p_desde: desde, p_hasta: hasta })
 export const pedido = (slug, datos) => ejecutarSp(CONTEXTO_ANONIMO, 'sp_publico_pedido', { p_slug: slug, p_datos: datos })
+
+// Pedidos de la página sin atender (para el Inicio) y "Ya lo contacté".
+export const pedidosPendientes = (ctx, org) => ejecutarSp(ctx, 'sp_pedidos_web_pendientes', { p_org: org })
+export const marcarAtendido = (ctx, reserva) => ejecutarSp(ctx, 'sp_pedido_web_atendido', { p_reserva: reserva })

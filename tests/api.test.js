@@ -187,6 +187,10 @@ describe('caja, proveedores y página pública', () => {
         })
         assert.equal(pedido.estado, 201)
         assert.equal(pedido.datos.ok, true)
+        const pendientes = (await duenia('GET', `/api/organizaciones/${org}/pedidos-web`)).datos
+        assert.equal(pendientes[0].telefono, '1166667777')
+        assert.equal((await duenia('POST', `/api/reservas/${pendientes[0].id}/pedido-web/atendido`)).estado, 204)
+        assert.equal((await duenia('GET', `/api/organizaciones/${org}/pedidos-web`)).datos.length, 0)
         assert.equal((await llamar(null)('GET', `/api/organizaciones/${org}/caja?desde=2027-01-01&hasta=2027-12-31`)).estado, 401)
     })
 })

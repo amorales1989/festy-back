@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(42);
+select plan(48);
 
 insert into auth.users (id, email, aud, role) values
   ('eeeeeeee-0000-0000-0000-000000000001', 'duenia@caja.test', 'authenticated', 'authenticated'),
@@ -127,12 +127,26 @@ select is((select r.estado::text || '/' || c.origen from public.reservas r join 
 select ok(exists (select 1 from public.notificaciones where usuario_id = 'eeeeeeee-0000-0000-0000-000000000001' and tipo = 'pedido_web'),
   'el equipo recibe el aviso del pedido');
 
+-- Pedidos de la página en el Inicio
+select pg_temp.como('eeeeeeee-0000-0000-0000-000000000001');
+select is(api.sp_pedidos_web_pendientes((select id from k where clave='org'))->0->>'telefono', '1166667777', 'el pedido aparece en el Inicio con su teléfono');
+select is(api.sp_pedidos_web_pendientes((select id from k where clave='org'))->0->>'mensaje', 'Somos 80', 'y con el mensaje del cliente');
+select pg_temp.como('eeeeeeee-0000-0000-0000-000000000002');
+select throws_ok(format($$select api.sp_pedido_web_atendido(%L)$$, (api.sp_pedidos_web_pendientes((select id from k where clave='org'))->0->>'id')),
+  '42501', null, 'el personal operativo no lo marca como contactado');
+select pg_temp.como('eeeeeeee-0000-0000-0000-000000000001');
+select lives_ok(format($$select api.sp_pedido_web_atendido(%L)$$, (api.sp_pedidos_web_pendientes((select id from k where clave='org'))->0->>'id')),
+  '"Ya lo contacté"');
+select is(jsonb_array_length(api.sp_pedidos_web_pendientes((select id from k where clave='org'))), 0, 'el pedido contactado sale de la lista');
+select pg_temp.admin();
+
 -- ---------------------------------------------------------------------------
 -- Aislamiento: la dueña de OTRA empresa no ve ni toca nada de esta
 -- ---------------------------------------------------------------------------
 select pg_temp.como('eeeeeeee-0000-0000-0000-000000000003');
 insert into k select 'org2', api.sp_organizacion_crear('Otra Empresa', 'America/Argentina/Buenos_Aires');
 select is(jsonb_array_length(api.sp_cuentas_listar((select id from k where clave='org'))), 0, 'otra empresa: no ve las cuentas');
+select is(jsonb_array_length(api.sp_pedidos_web_pendientes((select id from k where clave='org'))), 0, 'otra empresa: no ve los pedidos de la página');
 select throws_ok(format($$select api.sp_caja(%L, '2027-01-01', '2027-12-31')$$, (select id from k where clave='org')), '42501', null, 'otra empresa: no ve la caja');
 select throws_ok(format($$select api.sp_rentabilidad(%L, '2027-01-01', '2027-12-31')$$, (select id from k where clave='org')), '42501', null, 'otra empresa: no ve la rentabilidad');
 select is(jsonb_array_length(api.sp_proveedores_listar((select id from k where clave='org'))), 0, 'otra empresa: no ve los proveedores');

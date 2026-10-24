@@ -84,6 +84,7 @@ router.get('/rentabilidad', proveedorControlador.rentabilidad)
 
 // Página pública del salón (configuración)
 router.put('/pagina', paginaControlador.guardar)
+router.get('/pedidos-web', paginaControlador.pedidosPendientes)
 
 // Tareas
 router.get('/tareas', tareaControlador.listar)
