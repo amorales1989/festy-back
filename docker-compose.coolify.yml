@@ -113,6 +113,7 @@ services:
       AUTH_ADMIN_URL: http://auth:9999
       AUTH_ADMIN_KEY: ${SERVICE_ROLE_KEY}
       ADMIN_PLATAFORMA: ${ADMIN_PLATAFORMA:-}
+      ALTA_LIBRE_EMPRESAS: ${ALTA_LIBRE_EMPRESAS:-false}
       TZ: America/Argentina/Buenos_Aires
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/salud"]

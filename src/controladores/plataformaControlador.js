@@ -41,3 +41,10 @@ export const eliminarPago = async (req, res) => {
     await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_pago_eliminar', { p_id: req.params.id })
     res.status(204).end()
 }
+
+// Suspender (por falta de pago) o reactivar una empresa.
+export const cambiarEstado = async (req, res) => {
+    const { estado, motivo } = req.body ?? {}
+    await ejecutarSp(CONTEXTO_SERVICIO, 'sp_plataforma_estado', { p_org: req.params.id, p_estado: estado, p_motivo: motivo ?? null })
+    res.status(204).end()
+}

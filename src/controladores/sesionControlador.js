@@ -3,6 +3,8 @@ import { creado, sinContenido } from '../utilidades/respuestas.js'
 import { opcional } from '../utilidades/valores.js'
 import { ErrorApi } from '../utilidades/errores.js'
 import * as cuentasServicio from '../servicios/cuentasServicio.js'
+import { entorno } from '../config/entorno.js'
+import { esAdminPlataforma } from '../middlewares/adminPlataforma.js'
 
 export const obtenerPerfil = async (req, res) => res.json(await sesionRepositorio.obtenerPerfil(req.usuario))
 
@@ -14,6 +16,9 @@ export const elegirOrganizacion = async (req, res) => {
 export const listarOrganizaciones = async (req, res) => res.json(await sesionRepositorio.listarOrganizaciones(req.usuario))
 
 export const crearOrganizacion = async (req, res) => {
+    if (!entorno.altaLibreEmpresas && !esAdminPlataforma(req)) {
+        throw new ErrorApi(403, 'ALTA_CERRADA', 'Las empresas las da de alta Festy. Comunicate con nosotros.')
+    }
     const { nombre, zona_horaria } = req.body
     creado(res, { id: await sesionRepositorio.crearOrganizacion(req.usuario, nombre, zona_horaria) })
 }
@@ -51,3 +56,6 @@ export const crearCuentaInvitado = async (req, res) => {
     await cuentasServicio.crearUsuario({ email: inv.email, clave: req.body?.clave, nombre: String(req.body?.nombre || '').trim() || null })
     res.status(201).json({ email: inv.email })
 }
+
+// Empresas suspendidas del usuario (para mostrarle el aviso en lugar de "sin empresa").
+export const empresasSuspendidas = async (req, res) => res.json(await sesionRepositorio.empresasSuspendidas(req.usuario))

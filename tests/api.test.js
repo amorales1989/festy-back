@@ -7,6 +7,7 @@ import { execSync } from 'node:child_process'
 process.env.DATABASE_URL ??= 'postgresql://authenticator:postgres@127.0.0.1:64322/postgres'
 process.env.AUTH_URL ??= 'http://127.0.0.1:64321'
 process.env.DESACTIVAR_TAREAS = 'true'
+process.env.ALTA_LIBRE_EMPRESAS ??= 'true'
 const sufijoAdmin = Date.now()
 process.env.ADMIN_PLATAFORMA = `admin-${sufijoAdmin}@api.test`
 process.env.AUTH_ADMIN_KEY ??= execSync('supabase status -o env', { encoding: 'utf8' }).match(/^SERVICE_ROLE_KEY="(.*)"$/m)?.[1]
@@ -210,6 +211,15 @@ describe('cuentas: alta de empresas por el administrador e invitados', () => {
     }
 
     test('solo el administrador de la plataforma da de alta empresas', async () => {
+        const { entorno } = await import('../src/config/entorno.js')
+        entorno.altaLibreEmpresas = false  // como en producción
+        try {
+            const r = await duenia('POST', '/api/organizaciones', { nombre: 'Empresa por mi cuenta', zona_horaria: 'America/Argentina/Buenos_Aires' })
+            assert.equal(r.estado, 403)
+            assert.equal(r.datos.code, 'ALTA_CERRADA')
+        } finally {
+            entorno.altaLibreEmpresas = true
+        }
         assert.deepEqual((await duenia('GET', '/api/plataforma/yo')).datos, { admin: false })
         assert.equal((await duenia('GET', '/api/plataforma/empresas')).estado, 403)
         assert.equal((await duenia('POST', '/api/plataforma/empresas', { empresa: 'X', email: 'x@x.com', clave: 'clave-segura-1' })).estado, 403)
@@ -243,6 +253,15 @@ describe('cuentas: alta de empresas por el administrador e invitados', () => {
         assert.equal(fila.ultimo_pago.medio, 'mercadopago')
         assert.equal((await duenio('GET', `/api/plataforma/empresas/${id}/pagos`)).estado, 403)  // el dueño no ve ni registra su cobro
         assert.equal((await admin('DELETE', `/api/plataforma/pagos/${pago.datos.id}`)).estado, 204)
+        // Suspensión por falta de pago
+        assert.equal((await duenio('PUT', `/api/plataforma/empresas/${id}/estado`, { estado: 'suspendida' })).estado, 403)
+        assert.equal((await admin('PUT', `/api/plataforma/empresas/${id}/estado`, { estado: 'suspendida', motivo: 'Falta de pago' })).estado, 204)
+        assert.equal((await duenio('GET', `/api/organizaciones/${id}/reservas?estado=`)).datos.total, 0)
+        assert.equal((await duenio('POST', `/api/organizaciones/${id}/clientes`, { nombre: 'X' })).estado, 403)
+        const susp = (await duenio('GET', '/api/empresas-suspendidas')).datos
+        assert.equal(susp.find((e) => e.id === id).motivo, 'Falta de pago')
+        assert.equal((await admin('PUT', `/api/plataforma/empresas/${id}/estado`, { estado: 'activa' })).estado, 204)
+        assert.equal((await duenio('GET', `/api/organizaciones/${id}/contexto`)).estado, 200)
     })
 
     test('un invitado crea su cuenta solo con una invitación válida', async () => {

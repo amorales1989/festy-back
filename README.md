@@ -76,7 +76,7 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 
 | Área | Endpoints |
 |---|---|
-| Sesión | `GET /perfil` · `PUT /perfil/organizacion` · `GET/POST /organizaciones` · `GET /notificaciones` · `POST /notificaciones/leer` · `POST /dispositivos` · `DELETE /dispositivos/:token` · `GET /invitaciones/:token` (pública) · `POST /invitaciones/:token/aceptar` |
+| Sesión | `GET /perfil` · `PUT /perfil/organizacion` · `GET/POST /organizaciones` · `GET /empresas-suspendidas` · `GET /notificaciones` · `POST /notificaciones/leer` · `POST /dispositivos` · `DELETE /dispositivos/:token` · `GET /invitaciones/:token` (pública) · `POST /invitaciones/:token/aceptar` |
 | Organización | `GET /organizaciones/:org/contexto` (org, permisos, rol, plan y sedes) · `PATCH /organizaciones/:org` · `POST/DELETE …/baja` · `GET …/checklist` · `POST/DELETE …/ejemplos` · `GET …/panel` · `GET …/estadisticas?desde&hasta` · `GET …/buscar?q=` · `GET …/miembros` · `GET …/exportar` · `POST …/importar/clientes` · `POST …/importar/reservas` |
 | Sedes | `POST …/salones/nuevo` (alta simple: salón + espacio principal) · `POST/PUT …/salones[/:id]` · `POST/PUT …/sucursales[/:id]` · `POST/PUT …/espacios[/:id]` (`{ datos, horarios }`) · `GET /espacios/:id/horarios` · `GET/POST/PUT …/recursos` · `GET/POST …/feriados` |
 | Clientes | `GET …/clientes?q&limite&desplazamiento` · `GET …/clientes/buscar?q` · `POST/PUT …/clientes[/:id]` · `GET /clientes/:id` (con eventos y presupuestos) |
@@ -89,7 +89,7 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 | Gastos y tareas | `GET/POST/PUT …/gastos` · `GET/POST/PUT …/tareas` · `PATCH /tareas/:id/estado` |
 | Ventas | `GET/POST/PUT …/servicios` · `GET/POST/PUT …/presupuestos` · `GET /presupuestos/:id` · `POST /presupuestos/:id/aceptar` · `GET/POST/PUT …/entrevistas` · `GET /entrevistas/:id` |
 | Equipo | `GET …/roles` · `GET …/roles/matriz` · `PUT …/roles/permisos` · `GET/POST …/invitaciones` · `DELETE /invitaciones/:id` · `PATCH /membresias/:id` · `GET …/auditoria` |
-| Plataforma (solo administradores) | `GET /plataforma/yo` · `GET /plataforma/empresas` · `POST /plataforma/empresas` (crea la cuenta del dueño y su empresa) · `PUT /plataforma/empresas/:id/precio` · `GET/POST /plataforma/empresas/:id/pagos` · `DELETE /plataforma/pagos/:id` (cobro de la suscripción) · pública con límite: `POST /invitaciones/:token/cuenta` (el invitado crea su cuenta) |
+| Plataforma (solo administradores) | `GET /plataforma/yo` · `GET /plataforma/empresas` · `POST /plataforma/empresas` (crea la cuenta del dueño y su empresa) · `PUT /plataforma/empresas/:id/estado` (suspender/reactivar) · `PUT /plataforma/empresas/:id/precio` · `GET/POST /plataforma/empresas/:id/pagos` · `DELETE /plataforma/pagos/:id` (cobro de la suscripción) · pública con límite: `POST /invitaciones/:token/cuenta` (el invitado crea su cuenta) |
 | Genéricos | `DELETE /registros/:entidad/:id` · `PATCH /registros/:entidad/:id/activo` |
 
 ## Despliegue en el VPS

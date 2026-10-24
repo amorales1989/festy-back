@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(13);
+select plan(22);
 
 insert into auth.users (id, email, aud, role) values ('abababab-0000-0000-0000-000000000001', 'duenio@susc.test', 'authenticated', 'authenticated');
 create function pg_temp.como(uid uuid) returns void language sql as $$
@@ -53,6 +53,32 @@ select is((select (x->'ultimo_pago'->>'monto')::numeric from e), 30000::numeric,
 select api.sp_plataforma_pago_eliminar((api.sp_plataforma_pagos((select id from k where clave='org'))->0->>'id')::uuid);
 select is((select x->>'pagado_hasta' from jsonb_array_elements(api.sp_plataforma_empresas()) x where x->>'id' = (select id::text from k where clave='org')), '2027-05-10',
   'borrar un pago recalcula hasta cuándo está pagada');
+
+-- Suspensión por falta de pago
+select pg_temp.como('abababab-0000-0000-0000-000000000001');
+select api.sp_pagina_guardar((select id from k where clave='org'), '{"pagina_slug":"salon-suscripto","pagina_activa":true}');
+insert into k select 'cli', (api.sp_cliente_guardar((select id from k where clave='org'), null, '{"nombre":"Cliente"}')->>'id')::uuid;
+insert into k select 'res', api.sp_reserva_guardar((select id from k where clave='org'), null,
+  jsonb_build_object('sucursal_id', (select id from public.sucursales where organizacion_id = (select id from k where clave='org') limit 1),
+                     'cliente_id', (select id from k where clave='cli'), 'titulo', 'Evento', 'estado', 'consulta', 'inicio', '2027-09-04 21:00-03', 'fin', '2027-09-05 03:00-03'), '[]'::jsonb);
+select throws_ok(format($$select api.sp_plataforma_estado(%L, 'suspendida', 'yo')$$, (select id from k where clave='org')), '42501', null,
+  'una empresa no se suspende ni se reactiva sola');
+select pg_temp.servicio();
+select api.sp_plataforma_estado((select id from k where clave='org'), 'suspendida', 'Falta de pago de agosto');
+select pg_temp.como('abababab-0000-0000-0000-000000000001');
+select is(jsonb_array_length(api.sp_organizaciones_listar()), 0, 'suspendida: el dueño ya no ve su empresa');
+select is((api.sp_reservas_listar((select id from k where clave='org'), '{"estado":""}', 50, 0)->>'total')::int, 0, 'suspendida: no ve sus eventos');
+select throws_ok(format($$select api.sp_cliente_guardar(%L, null, '{"nombre":"Nuevo"}')$$, (select id from k where clave='org')), '42501', null,
+  'suspendida: no puede cargar datos');
+select is(api.sp_mis_empresas_suspendidas()->0->>'motivo', 'Falta de pago de agosto', 'el dueño ve que está suspendida y por qué');
+select set_config('role', 'anon', true), set_config('request.jwt.claims', '{"role":"anon"}', true);
+select throws_ok($$select api.sp_publico_salon('salon-suscripto')$$, 'P0002', null, 'suspendida: su página pública no se ve');
+select pg_temp.servicio();
+select api.sp_plataforma_estado((select id from k where clave='org'), 'activa', null);
+select pg_temp.como('abababab-0000-0000-0000-000000000001');
+select is(jsonb_array_length(api.sp_organizaciones_listar()), 1, 'reactivada: vuelve a ver su empresa');
+select is((api.sp_reservas_listar((select id from k where clave='org'), '{"estado":""}', 50, 0)->>'total')::int, 1, 'reactivada: sus datos siguen intactos');
+select is(jsonb_array_length(api.sp_mis_empresas_suspendidas()), 0, 'reactivada: sin aviso de suspensión');
 
 select * from finish();
 rollback;

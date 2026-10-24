@@ -24,5 +24,8 @@ export const entorno = {
     urlAuthAdmin: (process.env.AUTH_ADMIN_URL || `${(process.env.AUTH_URL || '').replace(/\/$/, '')}/auth/v1`).replace(/\/$/, ''),
     claveAuthAdmin: process.env.AUTH_ADMIN_KEY || '',
     // Emails de quienes administran la plataforma (dar de alta empresas). Separados por coma.
+    // true solo en desarrollo: cualquier usuario puede crear su empresa (onboarding).
+    // En producción las empresas las crea la administración (/plataforma).
+    altaLibreEmpresas: process.env.ALTA_LIBRE_EMPRESAS === 'true',
     adminsPlataforma: (process.env.ADMIN_PLATAFORMA || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean),
 }

@@ -10,3 +10,4 @@ export const registrarDispositivo = (ctx, token, plataforma) => ejecutarSp(ctx, 
 export const quitarDispositivo = (ctx, token) => ejecutarSp(ctx, 'sp_dispositivo_quitar', { p_token: token })
 export const verInvitacion = (token) => ejecutarSp(CONTEXTO_ANONIMO, 'sp_invitacion_ver', { p_token: token })
 export const aceptarInvitacion = (ctx, token) => ejecutarSp(ctx, 'sp_invitacion_aceptar', { p_token: token })
+export const empresasSuspendidas = (ctx) => ejecutarSp(ctx, 'sp_mis_empresas_suspendidas')
