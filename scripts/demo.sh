@@ -141,6 +141,10 @@ begin
     (v_org, 'Cabina de fotos', 'Fotos impresas ilimitadas', 'adicional', 'fotografia', 'evento', 280000, 150000, true),
     (v_org, 'Mesa dulce', 'Para 100 personas', 'adicional', 'catering', 'evento', 350000, 200000, true),
     (v_org, 'Show de luces LED', '', 'adicional', 'animacion', 'evento', 180000, 90000, true);
+  -- Precio por evento con personas incluidas: las de más se cobran aparte
+  insert into public.servicios (organizacion_id, nombre, descripcion, tipo, categoria, unidad, precio, personas_incluidas, precio_persona_extra, es_ejemplo) values
+    (v_org, 'Alquiler del quincho', 'Hasta 20 personas, 6 horas, mobiliario y limpieza', 'servicio', 'salon', 'evento', 350000, 20, 10000, true),
+    (v_org, 'Cumple infantil', 'Quincho, animación, menú infantil y torta para 30 chicos', 'paquete', 'salon', 'evento', 900000, 30, 18000, true);
 
   insert into public.clientes (organizacion_id, nombre, telefono, email, origen, es_ejemplo)
   values (v_org, 'Florencia Ibarra', '+54 9 351 555-3001', 'flor.ejemplo@example.com', 'instagram', true) returning id into v_cli;
