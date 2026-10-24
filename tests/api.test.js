@@ -154,3 +154,39 @@ describe('aislamiento entre organizaciones', () => {
         assert.equal(exp.datos.reservas, null)
     })
 })
+
+describe('caja, proveedores y página pública', () => {
+    test('caja por cuenta con cobro y pago a proveedor', async () => {
+        const cuentas = (await duenia('GET', `/api/organizaciones/${org}/cuentas`)).datos
+        assert.equal(cuentas.length, 3)
+        const prov = await duenia('POST', `/api/organizaciones/${org}/proveedores`, { nombre: 'Sonido Sur' })
+        assert.equal(prov.estado, 201)
+        const costo = await duenia('POST', `/api/organizaciones/${org}/costos`, { reserva_id: reserva, proveedor_id: prov.datos.id, descripcion: 'Sonido', monto: 300000 })
+        assert.equal(costo.estado, 201)
+        assert.equal((await duenia('POST', `/api/costos/${costo.datos.id}/pagos`, { fecha: '2027-02-01', monto: 100000, medio: 'efectivo' })).estado, 201)
+        const c = (await duenia('GET', `/api/reservas/${reserva}/costos`)).datos
+        assert.equal(c.costos[0].pendiente, 200000)
+        assert.equal(c.ganancia, 1700000)
+        const caja = (await duenia('GET', `/api/organizaciones/${org}/caja?desde=2027-01-01&hasta=2027-12-31`)).datos
+        // Efectivo: garantía cobrada 200.000 − devuelta 150.000 (prueba anterior) − pago al proveedor 100.000
+        assert.equal(caja.cuentas.find((x) => x.nombre === 'Efectivo').saldo, -50000)
+        const rent = (await duenia('GET', `/api/organizaciones/${org}/rentabilidad?desde=2027-09-01&hasta=2027-09-30`)).datos
+        assert.equal(rent.totales.ganancia, 1700000)
+    })
+
+    test('página pública: sin sesión ve el salón y deja un pedido', async () => {
+        const slug = `salon-api-${sufijo}`
+        assert.equal((await llamar(null)('GET', `/api/publico/${slug}`)).estado, 404)
+        assert.equal((await duenia('PUT', `/api/organizaciones/${org}/pagina`, { pagina_slug: slug, pagina_activa: true, pagina_whatsapp: '5491155550000' })).estado, 200)
+        const salon = await llamar(null)('GET', `/api/publico/${slug}`)
+        assert.equal(salon.datos.nombre, 'Salón Prueba API')
+        const ocup = await llamar(null)('GET', `/api/publico/${slug}/ocupacion?desde=2027-09-01&hasta=2027-09-30`)
+        assert.deepEqual(ocup.datos.map((d) => d.fecha), ['2027-09-11'])
+        const pedido = await llamar(null)('POST', `/api/publico/${slug}/pedidos`, {
+            nombre: 'Juan Web', telefono: '1166667777', fecha: '2027-10-02', espacio_id: espacio, invitados: 50,
+        })
+        assert.equal(pedido.estado, 201)
+        assert.equal(pedido.datos.ok, true)
+        assert.equal((await llamar(null)('GET', `/api/organizaciones/${org}/caja?desde=2027-01-01&hasta=2027-12-31`)).estado, 401)
+    })
+})

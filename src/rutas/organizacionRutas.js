@@ -7,6 +7,9 @@ import * as cobroControlador from '../controladores/cobroControlador.js'
 import * as tareaControlador from '../controladores/tareaControlador.js'
 import * as ventaControlador from '../controladores/ventaControlador.js'
 import * as equipoControlador from '../controladores/equipoControlador.js'
+import * as cajaControlador from '../controladores/cajaControlador.js'
+import * as proveedorControlador from '../controladores/proveedorControlador.js'
+import * as paginaControlador from '../controladores/paginaControlador.js'
 
 // Todo lo que pertenece a una organización: /api/organizaciones/:org/...
 // El aislamiento lo garantiza la base (RLS + permisos en cada SP).
@@ -63,6 +66,24 @@ router.get('/garantias', cobroControlador.listarGarantias)
 router.get('/gastos', cobroControlador.listarGastos)
 router.post('/gastos', cobroControlador.crearGasto)
 router.put('/gastos/:id', cobroControlador.actualizarGasto)
+
+// Caja por cuenta
+router.get('/cuentas', cajaControlador.listarCuentas)
+router.post('/cuentas', cajaControlador.crearCuenta)
+router.put('/cuentas/:id', cajaControlador.actualizarCuenta)
+router.get('/caja', cajaControlador.resumen)
+router.post('/transferencias', cajaControlador.crearTransferencia)
+
+// Proveedores, costos por evento y rentabilidad
+router.get('/proveedores', proveedorControlador.listar)
+router.post('/proveedores', proveedorControlador.crear)
+router.put('/proveedores/:id', proveedorControlador.actualizar)
+router.post('/costos', proveedorControlador.crearCosto)
+router.put('/costos/:id', proveedorControlador.actualizarCosto)
+router.get('/rentabilidad', proveedorControlador.rentabilidad)
+
+// Página pública del salón (configuración)
+router.put('/pagina', paginaControlador.guardar)
 
 // Tareas
 router.get('/tareas', tareaControlador.listar)

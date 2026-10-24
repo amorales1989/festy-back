@@ -8,11 +8,13 @@ import * as sesionControlador from './controladores/sesionControlador.js'
 import sesionRutas from './rutas/sesionRutas.js'
 import organizacionRutas from './rutas/organizacionRutas.js'
 import recursoRutas from './rutas/recursoRutas.js'
+import publicoRutas from './rutas/publicoRutas.js'
 
 export const crearApp = () => {
     const app = express()
     app.disable('x-powered-by')
-    app.set('trust proxy', 1)
+    // Detrás de Traefik y Caddy: la IP real es la primera no privada de X-Forwarded-For.
+    app.set('trust proxy', 'loopback, linklocal, uniquelocal')
     app.use(cors({ origin: entorno.origenes, maxAge: 86400 }))
     app.use(express.json({ limit: '5mb' })) // importaciones CSV grandes
     app.set('etag', false)
@@ -38,6 +40,7 @@ export const crearApp = () => {
 
     // Pública: ver los datos de una invitación antes de crear la cuenta.
     app.get('/api/invitaciones/:token', sesionControlador.verInvitacion)
+    app.use('/api/publico', publicoRutas)
 
     app.use('/api', requiereSesion)
     app.use('/api', sesionRutas)

@@ -39,7 +39,7 @@ src/
   servicios/             push (FCM) y tareas programadas
 supabase/
   migrations/            esquema, RLS, triggers, reglas de negocio y capa api.sp_*
-  tests/                 pgTAP (160 pruebas)
+  tests/                 pgTAP (197 pruebas)
 scripts/                 demo.sh (cuenta demo), prueba_concurrencia.sh
 tests/                   pruebas de punta a punta de la API (node:test)
 despliegue/              docker-compose del VPS, Caddy, scripts de migración/respaldo
@@ -62,15 +62,15 @@ En el front: `VITE_API_URL=http://127.0.0.1:4000/api` (ya está en `.env.local`)
 ## Pruebas
 
 ```bash
-npm run test:db           # pgTAP: aislamiento, permisos, superposición, cobros, garantías, capa api (160)
-npm test                  # API de punta a punta: auth, flujo, conflictos 409, garantías, aislamiento (10)
+npm run test:db           # pgTAP: aislamiento, permisos, superposición, cobros, garantías, caja, proveedores, página pública (197)
+npm test                  # API de punta a punta: auth, flujo, conflictos 409, garantías, caja, proveedores, página pública, aislamiento (12)
 npm run test:concurrencia # dos transacciones reales compitiendo por el mismo espacio
 ```
 Los e2e de Playwright del front (`npx playwright test` en `festy`) recorren la app completa contra esta API.
 
 ## Endpoints
 
-Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /api/invitaciones/:token`.
+Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /api/invitaciones/:token` y `/api/publico/*` (página pública del salón).
 `:org` es el id de la organización. Respuestas `204` = sin cuerpo.
 
 | Área | Endpoints |
@@ -82,6 +82,9 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 | Reservas | `GET …/reservas?estado&contrato&desde&hasta&sucursal&texto&limite&desplazamiento` · `POST/PUT …/reservas[/:id]` (`{ datos, espacios }`) · `GET /reservas/:id` · `GET /reservas/:id/ficha` · `PATCH /reservas/:id/estado` · `PATCH /reservas/:id/contrato` · `POST /reservas/:id/items` · `POST …/disponibilidad` · `GET …/agenda` · `POST …/bloqueos` |
 | Cobros | `POST /reservas/:id/pagos` · `PATCH /pagos/:id/anular` · `GET /pagos/:id/comprobante` · `GET …/cobros?desde&hasta` · `GET …/cuotas?vista&hoy` · `POST/PUT …/reservas/:id/cuotas` |
 | Garantías | `GET …/garantias` · `PUT/DELETE /reservas/:id/garantia` · `POST /reservas/:id/garantia/cobro` · `POST /reservas/:id/garantia/devolucion` |
+| Caja | `GET/POST/PUT …/cuentas` · `GET …/caja?desde&hasta` (saldos por cuenta y movimientos) · `POST …/transferencias` |
+| Proveedores y rentabilidad | `GET/POST/PUT …/proveedores` · `POST/PUT …/costos` · `GET /reservas/:id/costos` · `POST /reservas/:id/costos/catalogo` · `POST /costos/:id/pagos` (registra el gasto) · `GET …/rentabilidad?desde&hasta` |
+| Página pública | `PUT …/pagina` (configuración) · sin sesión y con límite por IP: `GET /publico/:slug` · `GET /publico/:slug/ocupacion?desde&hasta` · `POST /publico/:slug/pedidos` |
 | Gastos y tareas | `GET/POST/PUT …/gastos` · `GET/POST/PUT …/tareas` · `PATCH /tareas/:id/estado` |
 | Ventas | `GET/POST/PUT …/servicios` · `GET/POST/PUT …/presupuestos` · `GET /presupuestos/:id` · `POST /presupuestos/:id/aceptar` · `GET/POST/PUT …/entrevistas` · `GET /entrevistas/:id` |
 | Equipo | `GET …/roles` · `GET …/roles/matriz` · `PUT …/roles/permisos` · `GET/POST …/invitaciones` · `DELETE /invitaciones/:id` · `PATCH /membresias/:id` · `GET …/auditoria` |

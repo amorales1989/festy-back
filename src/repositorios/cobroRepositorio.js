@@ -15,10 +15,10 @@ export const listarGarantias = (ctx, org) => ejecutarSp(ctx, 'sp_garantias_lista
 export const pedirGarantia = (ctx, reserva, monto) => ejecutarSp(ctx, 'sp_garantia_pedir', { p_reserva: reserva, p_monto: monto })
 export const quitarGarantia = (ctx, reserva) => ejecutarSp(ctx, 'sp_garantia_quitar', { p_reserva: reserva })
 export const cobrarGarantia = (ctx, reserva, d) => ejecutarSp(ctx, 'sp_garantia_cobrar', {
-    p_reserva: reserva, p_fecha: d.fecha, p_medio: d.medio, p_referencia: d.referencia,
+    p_reserva: reserva, p_fecha: d.fecha, p_medio: d.medio, p_referencia: d.referencia, p_cuenta: d.cuenta,
 })
 export const devolverGarantia = (ctx, reserva, d) => ejecutarSp(ctx, 'sp_garantia_devolver', {
-    p_reserva: reserva, p_fecha: d.fecha, p_monto_devuelto: d.monto_devuelto, p_medio: d.medio, p_motivo: d.motivo,
+    p_reserva: reserva, p_fecha: d.fecha, p_monto_devuelto: d.monto_devuelto, p_medio: d.medio, p_motivo: d.motivo, p_cuenta: d.cuenta,
 })
 
 export const listarGastos = (ctx, org, desde, hasta, categoria) =>

@@ -38,13 +38,15 @@ export const quitarGarantia = async (req, res) => {
 }
 
 export const cobrarGarantia = async (req, res) => {
-    const { fecha, medio, referencia } = req.body
-    res.json({ numero: await cobroRepositorio.cobrarGarantia(req.usuario, req.params.id, { fecha, medio, referencia: opcional(referencia) }) })
+    const { fecha, medio, referencia, cuenta_id } = req.body
+    res.json({ numero: await cobroRepositorio.cobrarGarantia(req.usuario, req.params.id, { fecha, medio, referencia: opcional(referencia), cuenta: opcional(cuenta_id) }) })
 }
 
 export const devolverGarantia = async (req, res) => {
-    const { fecha, monto_devuelto, medio, motivo } = req.body
-    res.json({ numero: await cobroRepositorio.devolverGarantia(req.usuario, req.params.id, { fecha, monto_devuelto, medio, motivo: opcional(motivo) }) })
+    const { fecha, monto_devuelto, medio, motivo, cuenta_id } = req.body
+    res.json({ numero: await cobroRepositorio.devolverGarantia(req.usuario, req.params.id, {
+        fecha, monto_devuelto, medio, motivo: opcional(motivo), cuenta: opcional(cuenta_id),
+    }) })
 }
 
 export const listarGastos = async (req, res) => {
