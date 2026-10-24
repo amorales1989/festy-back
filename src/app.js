@@ -15,6 +15,11 @@ export const crearApp = () => {
     app.set('trust proxy', 1)
     app.use(cors({ origin: entorno.origenes, maxAge: 86400 }))
     app.use(express.json({ limit: '5mb' })) // importaciones CSV grandes
+    app.set('etag', false)
+    app.use('/api', (req, res, next) => {
+        res.set('Cache-Control', 'no-store') // datos privados: nunca en cachés compartidas
+        next()
+    })
 
     app.use((req, res, next) => {
         const inicio = Date.now()

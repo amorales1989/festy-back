@@ -42,7 +42,7 @@ URLS_REDIRECCION_EXTRA=${FRONT}/**
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 JWT_SECRET=${JWT_SECRET}
 JWT_EXPIRY=3600
-# Clave pública de GoTrue: va en Vercel como VITE_SUPABASE_ANON_KEY
+# Clave pública de GoTrue: va en Vercel como VITE_AUTH_KEY
 ANON_KEY=${ANON_KEY}
 # Clave de administrador: NUNCA en el front
 SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
@@ -72,6 +72,6 @@ ENV
 echo "Listo: despliegue/.env"
 echo
 echo "Para Vercel:"
-echo "  VITE_SUPABASE_URL=${URL_API}"
+echo "  VITE_AUTH_URL=${URL_API}"
 echo "  VITE_API_URL=${URL_API}/api"
-echo "  VITE_SUPABASE_ANON_KEY=${ANON_KEY}"
+echo "  VITE_AUTH_KEY=${ANON_KEY}"

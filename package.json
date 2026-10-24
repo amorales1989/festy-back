@@ -14,7 +14,7 @@
     "test": "node --test tests/*.test.js",
     "test:db": "supabase test db",
     "db:reset": "supabase db reset",
-    "db:tipos": "supabase gen types typescript --local --schema public > ../festy/src/types/database.ts",
+    "db:tipos": "supabase gen types typescript --local --schema public > ../festy/src/tipos/database.ts",
     "demo": "bash scripts/demo.sh",
     "test:concurrencia": "bash scripts/prueba_concurrencia.sh"
   },
