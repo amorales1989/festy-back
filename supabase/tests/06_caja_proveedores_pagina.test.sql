@@ -2,11 +2,12 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(32);
+select plan(42);
 
 insert into auth.users (id, email, aud, role) values
   ('eeeeeeee-0000-0000-0000-000000000001', 'duenia@caja.test', 'authenticated', 'authenticated'),
-  ('eeeeeeee-0000-0000-0000-000000000002', 'operativo@caja.test', 'authenticated', 'authenticated');
+  ('eeeeeeee-0000-0000-0000-000000000002', 'operativo@caja.test', 'authenticated', 'authenticated'),
+  ('eeeeeeee-0000-0000-0000-000000000003', 'otra-empresa@caja.test', 'authenticated', 'authenticated');
 
 create function pg_temp.como(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -125,6 +126,27 @@ select is((select r.estado::text || '/' || c.origen from public.reservas r join 
   'el pedido crea una consulta (no bloquea la fecha) y un cliente de origen web');
 select ok(exists (select 1 from public.notificaciones where usuario_id = 'eeeeeeee-0000-0000-0000-000000000001' and tipo = 'pedido_web'),
   'el equipo recibe el aviso del pedido');
+
+-- ---------------------------------------------------------------------------
+-- Aislamiento: la dueña de OTRA empresa no ve ni toca nada de esta
+-- ---------------------------------------------------------------------------
+select pg_temp.como('eeeeeeee-0000-0000-0000-000000000003');
+insert into k select 'org2', api.sp_organizacion_crear('Otra Empresa', 'America/Argentina/Buenos_Aires');
+select is(jsonb_array_length(api.sp_cuentas_listar((select id from k where clave='org'))), 0, 'otra empresa: no ve las cuentas');
+select throws_ok(format($$select api.sp_caja(%L, '2027-01-01', '2027-12-31')$$, (select id from k where clave='org')), '42501', null, 'otra empresa: no ve la caja');
+select throws_ok(format($$select api.sp_rentabilidad(%L, '2027-01-01', '2027-12-31')$$, (select id from k where clave='org')), '42501', null, 'otra empresa: no ve la rentabilidad');
+select is(jsonb_array_length(api.sp_proveedores_listar((select id from k where clave='org'))), 0, 'otra empresa: no ve los proveedores');
+select is(jsonb_array_length(api.sp_costos_evento((select id from k where clave='res'))->'costos'), 0, 'otra empresa: no ve los costos del evento');
+select throws_ok(format($$select api.sp_costo_pagar(%L, '{"fecha":"2027-02-02","monto":1000,"medio":"efectivo"}')$$, (select id from k where clave='costo')),
+  'P0002', null, 'otra empresa: no paga costos ajenos');
+select throws_ok(format($$select api.sp_transferencia_crear(%L, %L::jsonb)$$, (select id from k where clave='org'),
+  jsonb_build_object('fecha', '2027-01-13', 'desde_cuenta_id', (select id from k where clave='banco'), 'hacia_cuenta_id', (select id from k where clave='efectivo'), 'monto', 1)),
+  '42501', null, 'otra empresa: no mueve plata entre cuentas ajenas');
+select throws_ok(format($$select api.sp_pagina_guardar(%L, '{"pagina_slug":"robada","pagina_activa":true}')$$, (select id from k where clave='org')),
+  '42501', null, 'otra empresa: no cambia la página ajena');
+select throws_ok(format($$select api.sp_pagina_guardar(%L, '{"pagina_slug":"salon-caja","pagina_activa":true}')$$, (select id from k where clave='org2')),
+  '23505', null, 'cada empresa tiene su propia dirección de página');
+select is(jsonb_array_length(api.sp_cuentas_listar((select id from k where clave='org2'))), 3, 'otra empresa: tiene sus propias cuentas');
 
 select * from finish();
 rollback;
