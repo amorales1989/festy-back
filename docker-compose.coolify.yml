@@ -71,6 +71,12 @@ services:
       GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "Confirmá tu cuenta de Festy"
       GOTRUE_MAILER_SUBJECTS_RECOVERY: "Recuperá tu contraseña de Festy"
       GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: "Confirmá tu nuevo email"
+      GOTRUE_MAILER_SUBJECTS_INVITE: "Te invitaron a Festy"
+      # Plantillas en español (se publican con el front, en /correos/)
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: ${URL_FRONT}/correos/recuperar.html
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: ${URL_FRONT}/correos/confirmar.html
+      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: ${URL_FRONT}/correos/cambio-email.html
+      GOTRUE_MAILER_TEMPLATES_INVITE: ${URL_FRONT}/correos/invitacion.html
       GOTRUE_RATE_LIMIT_EMAIL_SENT: 30
 
   # Corre las migraciones pendientes y termina (necesita las tablas de auth de GoTrue).
