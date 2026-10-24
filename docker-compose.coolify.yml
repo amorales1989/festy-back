@@ -115,6 +115,8 @@ services:
       context: .
       dockerfile: despliegue/coolify/gateway.Dockerfile
     restart: unless-stopped
+    environment:
+      URL_FRONT: ${URL_FRONT}
     depends_on:
       api:
         condition: service_healthy

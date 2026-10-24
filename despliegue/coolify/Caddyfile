@@ -16,7 +16,27 @@
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
 	}
+	# CORS de la autenticación (GoTrue no lo maneja solo): únicamente el front
+	# (URL_FRONT) y la app Android. La API de Festy maneja su propio CORS.
+	@cors_auth {
+		path /auth/v1/*
+		# Una línea por origen (varios valores en una misma línea no funcionan).
+		header Origin {$URL_FRONT}
+		header Origin https://localhost
+		header Origin capacitor://localhost
+		header Origin http://localhost
+	}
+	header @cors_auth {
+		Access-Control-Allow-Origin "{http.request.header.Origin}"
+		Access-Control-Allow-Headers "authorization, apikey, content-type, x-client-info, x-supabase-api-version"
+		Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		Access-Control-Max-Age "86400"
+		Vary Origin
+		defer
+	}
 	handle_path /auth/v1/* {
+		@preflight method OPTIONS
+		respond @preflight 204
 		reverse_proxy auth:9999
 	}
 	handle /api/* {
