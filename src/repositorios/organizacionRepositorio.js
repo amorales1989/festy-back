@@ -15,3 +15,4 @@ export const listarMiembros = (ctx, org) => ejecutarSp(ctx, 'sp_miembros_listar'
 export const exportar = (ctx, org) => ejecutarSp(ctx, 'sp_exportar', { p_org: org })
 export const importarClientes = (ctx, org, filas) => ejecutarSp(ctx, 'sp_importar_clientes', { p_org: org, p_filas: json(filas) })
 export const importarReservas = (ctx, org, filas) => ejecutarSp(ctx, 'sp_importar_reservas', { p_org: org, p_filas: json(filas) })
+export const estadisticas = (ctx, org, desde, hasta) => ejecutarSp(ctx, 'sp_estadisticas', { p_org: org, p_desde: desde, p_hasta: hasta })

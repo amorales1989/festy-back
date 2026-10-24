@@ -38,3 +38,6 @@ export const importarClientes = async (req, res) =>
 
 export const importarReservas = async (req, res) =>
     res.json(await organizacionRepositorio.importarReservas(req.usuario, req.params.org, req.body.filas ?? []))
+
+export const estadisticas = async (req, res) =>
+    res.json(await organizacionRepositorio.estadisticas(req.usuario, req.params.org, req.query.desde, req.query.hasta))
