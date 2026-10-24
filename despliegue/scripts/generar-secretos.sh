@@ -49,7 +49,9 @@ SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
 PG_META_CRYPTO_KEY=$(aleatorio 32)
 
 # --- Registro y emails ---
-DESACTIVAR_REGISTRO=false
+# Registro público cerrado: las empresas se crean desde /plataforma (emails de ADMIN_PLATAFORMA)
+DESACTIVAR_REGISTRO=true
+ADMIN_PLATAFORMA=
 # true mientras no haya SMTP: las cuentas se activan sin confirmar el email.
 AUTOCONFIRMAR_EMAIL=true
 SMTP_REMITENTE=no-responder@${DOMINIO#api.}

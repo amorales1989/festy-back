@@ -9,6 +9,8 @@ import sesionRutas from './rutas/sesionRutas.js'
 import organizacionRutas from './rutas/organizacionRutas.js'
 import recursoRutas from './rutas/recursoRutas.js'
 import publicoRutas from './rutas/publicoRutas.js'
+import plataformaRutas from './rutas/plataformaRutas.js'
+import { limitarPorIp } from './middlewares/limite.js'
 
 export const crearApp = () => {
     const app = express()
@@ -41,8 +43,10 @@ export const crearApp = () => {
     // Pública: ver los datos de una invitación antes de crear la cuenta.
     app.get('/api/invitaciones/:token', sesionControlador.verInvitacion)
     app.use('/api/publico', publicoRutas)
+    app.post('/api/invitaciones/:token/cuenta', limitarPorIp({ maximo: 5, ventanaMs: 10 * 60_000 }), sesionControlador.crearCuentaInvitado)
 
     app.use('/api', requiereSesion)
+    app.use('/api/plataforma', plataformaRutas)
     app.use('/api', sesionRutas)
     app.use('/api/organizaciones/:org', organizacionRutas)
     app.use('/api', recursoRutas)

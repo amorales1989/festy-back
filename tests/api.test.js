@@ -7,6 +7,9 @@ import { execSync } from 'node:child_process'
 process.env.DATABASE_URL ??= 'postgresql://authenticator:postgres@127.0.0.1:64322/postgres'
 process.env.AUTH_URL ??= 'http://127.0.0.1:64321'
 process.env.DESACTIVAR_TAREAS = 'true'
+const sufijoAdmin = Date.now()
+process.env.ADMIN_PLATAFORMA = `admin-${sufijoAdmin}@api.test`
+process.env.AUTH_ADMIN_KEY ??= execSync('supabase status -o env', { encoding: 'utf8' }).match(/^SERVICE_ROLE_KEY="(.*)"$/m)?.[1]
 
 const { crearApp } = await import('../src/app.js')
 const { pool } = await import('../src/config/db.js')
@@ -58,7 +61,9 @@ after(async () => {
         await admin.query('delete from public.reservas where organizacion_id = $1', [org])
         await admin.query('delete from public.organizaciones where id = $1', [org])
     }
-    await admin.query("delete from auth.users where email like $1", [`%-${sufijo}@api.test`])
+    await admin.query('delete from public.reservas where organizacion_id in (select organizacion_id from public.membresias m join auth.users u on u.id = m.usuario_id where u.email like $1)', [`nuevo-duenio-${sufijo}@api.test`])
+    await admin.query('delete from public.organizaciones where creado_por in (select id from auth.users where email like $1)', [`nuevo-duenio-${sufijo}@api.test`])
+    await admin.query("delete from auth.users where email like $1 or email like $2", [`%-${sufijo}@api.test`, `admin-%@api.test`])
     await admin.end()
     await pool.end()
 })
@@ -192,5 +197,54 @@ describe('caja, proveedores y página pública', () => {
         assert.equal((await duenia('POST', `/api/reservas/${pendientes[0].id}/pedido-web/atendido`)).estado, 204)
         assert.equal((await duenia('GET', `/api/organizaciones/${org}/pedidos-web`)).datos.length, 0)
         assert.equal((await llamar(null)('GET', `/api/organizaciones/${org}/caja?desde=2027-01-01&hasta=2027-12-31`)).estado, 401)
+    })
+})
+
+describe('cuentas: alta de empresas por el administrador e invitados', () => {
+    let admin
+    const ingresar = async (email, password) => {
+        const r = await fetch(`${AUTH}/auth/v1/token?grant_type=password`, {
+            method: 'POST', headers: { apikey: CLAVE, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
+        })
+        return (await r.json()).access_token
+    }
+
+    test('solo el administrador de la plataforma da de alta empresas', async () => {
+        assert.deepEqual((await duenia('GET', '/api/plataforma/yo')).datos, { admin: false })
+        assert.equal((await duenia('GET', '/api/plataforma/empresas')).estado, 403)
+        assert.equal((await duenia('POST', '/api/plataforma/empresas', { empresa: 'X', email: 'x@x.com', clave: 'clave-segura-1' })).estado, 403)
+        admin = llamar(await cuenta(`admin-${sufijoAdmin}@api.test`))
+        assert.deepEqual((await admin('GET', '/api/plataforma/yo')).datos, { admin: true })
+    })
+
+    test('el alta crea la cuenta del dueño y su empresa; el dueño puede entrar', async () => {
+        const email = `nuevo-duenio-${sufijo}@api.test`
+        const r = await admin('POST', '/api/plataforma/empresas', { empresa: 'Salón Nuevo API', nombre: 'Dueño Nuevo', email, clave: 'clave-inicial-1' })
+        assert.equal(r.estado, 201)
+        assert.equal(r.datos.cuenta_nueva, true)
+        const empresas = (await admin('GET', '/api/plataforma/empresas')).datos
+        assert.equal(empresas.find((e) => e.id === r.datos.organizacion_id).duenio.email, email)
+        const duenio = llamar(await ingresar(email, 'clave-inicial-1'))
+        const orgs = (await duenio('GET', '/api/organizaciones')).datos
+        assert.equal(orgs[0].nombre, 'Salón Nuevo API')
+        assert.equal((await duenio('GET', `/api/organizaciones/${orgs[0].id}/contexto`)).datos.rol, 'Propietario')
+        // Repetir el alta con el mismo email no duplica la cuenta: le suma otra empresa
+        const r2 = await admin('POST', '/api/plataforma/empresas', { empresa: 'Segunda Sede', email })
+        assert.equal(r2.datos.cuenta_nueva, false)
+    })
+
+    test('un invitado crea su cuenta solo con una invitación válida', async () => {
+        const roles = (await duenia('GET', `/api/organizaciones/${org}/roles`)).datos
+        const email = `invitado-${sufijo}@api.test`
+        const inv = await duenia('POST', `/api/organizaciones/${org}/invitaciones`, { email, rol_id: roles.find((r) => r.clave === 'recepcion').id })
+        const token = inv.datos.token
+        assert.equal((await llamar(null)('POST', `/api/invitaciones/token-falso/cuenta`, { nombre: 'X', clave: 'clave-segura-1' })).estado, 400)
+        assert.equal((await llamar(null)('POST', `/api/invitaciones/${token}/cuenta`, { nombre: 'Invitado', clave: 'corta' })).estado, 400)
+        const r = await llamar(null)('POST', `/api/invitaciones/${token}/cuenta`, { nombre: 'Invitado', clave: 'clave-segura-1', email: 'otro@x.com' })
+        assert.equal(r.estado, 201)
+        assert.equal(r.datos.email, email)  // siempre el email de la invitación
+        assert.equal((await llamar(null)('POST', `/api/invitaciones/${token}/cuenta`, { nombre: 'Invitado', clave: 'clave-segura-1' })).estado, 409)
+        const invitado = llamar(await ingresar(email, 'clave-segura-1'))
+        assert.equal((await invitado('POST', `/api/invitaciones/${token}/aceptar`)).datos.organizacion_id, org)
     })
 })

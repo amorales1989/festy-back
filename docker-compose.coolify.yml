@@ -46,7 +46,7 @@ services:
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
       GOTRUE_SITE_URL: ${URL_FRONT}
       GOTRUE_URI_ALLOW_LIST: ${URLS_REDIRECCION_EXTRA:-}
-      GOTRUE_DISABLE_SIGNUP: ${DESACTIVAR_REGISTRO:-false}
+      GOTRUE_DISABLE_SIGNUP: ${DESACTIVAR_REGISTRO:-true}
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
@@ -103,6 +103,10 @@ services:
       JWT_ISSUER: ${URL_PUBLICA_API}/auth/v1
       ORIGENES_PERMITIDOS: ${URL_FRONT},https://localhost,capacitor://localhost,http://localhost
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+      # Crear cuentas (registro público cerrado): API de administración de GoTrue
+      AUTH_ADMIN_URL: http://auth:9999
+      AUTH_ADMIN_KEY: ${SERVICE_ROLE_KEY}
+      ADMIN_PLATAFORMA: ${ADMIN_PLATAFORMA:-}
       TZ: America/Argentina/Buenos_Aires
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/salud"]

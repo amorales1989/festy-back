@@ -1,6 +1,8 @@
 import * as sesionRepositorio from '../repositorios/sesionRepositorio.js'
 import { creado, sinContenido } from '../utilidades/respuestas.js'
 import { opcional } from '../utilidades/valores.js'
+import { ErrorApi } from '../utilidades/errores.js'
+import * as cuentasServicio from '../servicios/cuentasServicio.js'
 
 export const obtenerPerfil = async (req, res) => res.json(await sesionRepositorio.obtenerPerfil(req.usuario))
 
@@ -37,3 +39,15 @@ export const verInvitacion = async (req, res) => res.json(await sesionRepositori
 
 export const aceptarInvitacion = async (req, res) =>
     res.json({ organizacion_id: await sesionRepositorio.aceptarInvitacion(req.usuario, req.params.token) })
+
+// Cuenta para un invitado (el registro público está cerrado): solo con una
+// invitación válida y para el email al que se envió.
+export const crearCuentaInvitado = async (req, res) => {
+    const inv = await sesionRepositorio.verInvitacion(req.params.token)
+    if (!inv?.valida) throw new ErrorApi(400, 'INVITACION', inv?.motivo || 'La invitación no es válida.')
+    if (await cuentasServicio.usuarioPorEmail(inv.email)) {
+        throw new ErrorApi(409, 'CUENTA_EXISTE', 'Ya tenés una cuenta con ese email: ingresá para aceptar la invitación.')
+    }
+    await cuentasServicio.crearUsuario({ email: inv.email, clave: req.body?.clave, nombre: String(req.body?.nombre || '').trim() || null })
+    res.status(201).json({ email: inv.email })
+}

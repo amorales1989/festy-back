@@ -13,6 +13,7 @@ Navegador / app Android
 - **Node 22 + Express 5**, capas `rutas → controladores → repositorios` (como back-rubi). `servicios/` solo tiene lo que no es base de datos (push).
 - **Todo acceso a datos es por stored procedure**: los repositorios únicamente llaman a `api.sp_<entidad>_<acción>` mediante `ejecutarSp()` ([src/config/db.js](src/config/db.js)). No hay SQL suelto en la API.
 - **La seguridad sigue en la base.** Cada pedido abre una transacción, fija `role = authenticated` y los claims del JWT (`request.jwt.claims`) y llama al SP. Los SP son `SECURITY INVOKER`: la RLS, `auth.uid()`, `exigir_permiso()` y el aislamiento entre organizaciones aplican igual que antes. La API se conecta como `authenticator`, que no puede hacer nada por sí mismo.
+- **Cuentas**: el registro público está cerrado. Las empresas las da de alta un administrador de la plataforma (emails en `ADMIN_PLATAFORMA`) desde `/plataforma`; los empleados entran por invitación y crean su cuenta desde el enlace. La API crea las cuentas con la API de administración de GoTrue (`AUTH_ADMIN_KEY`).
 - **Autenticación**: GoTrue (de Supabase) emite los tokens; la API los valida con `jose` (HS256 con `JWT_SECRET` en el VPS, o JWKS con la CLI local). El cliente nunca elige su rol de base.
 - **Errores**: el cuerpo es `{ code, message, details, hint }` (igual que PostgREST, así el front los traduce sin cambios). SQLSTATE → HTTP: `42501`→403, `P0002`→404, `23P01`/`23505`/`23503`→409, `P0001`/`23514`/`22xxx`→400. Los 500 no exponen detalles.
 - **Tareas programadas**: las de negocio (vencer tentativas, recordatorios, purgas) siguen en `pg_cron`. La API solo envía las notificaciones push (cada minuto) con Firebase Cloud Messaging.
@@ -88,6 +89,7 @@ Todos bajo `/api`, con `Authorization: Bearer <token de GoTrue>`, salvo `GET /ap
 | Gastos y tareas | `GET/POST/PUT …/gastos` · `GET/POST/PUT …/tareas` · `PATCH /tareas/:id/estado` |
 | Ventas | `GET/POST/PUT …/servicios` · `GET/POST/PUT …/presupuestos` · `GET /presupuestos/:id` · `POST /presupuestos/:id/aceptar` · `GET/POST/PUT …/entrevistas` · `GET /entrevistas/:id` |
 | Equipo | `GET …/roles` · `GET …/roles/matriz` · `PUT …/roles/permisos` · `GET/POST …/invitaciones` · `DELETE /invitaciones/:id` · `PATCH /membresias/:id` · `GET …/auditoria` |
+| Plataforma (solo administradores) | `GET /plataforma/yo` · `GET /plataforma/empresas` · `POST /plataforma/empresas` (crea la cuenta del dueño y su empresa) · pública con límite: `POST /invitaciones/:token/cuenta` (el invitado crea su cuenta) |
 | Genéricos | `DELETE /registros/:entidad/:id` · `PATCH /registros/:entidad/:id/activo` |
 
 ## Despliegue en el VPS

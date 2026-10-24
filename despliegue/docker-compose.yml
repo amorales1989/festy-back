@@ -110,6 +110,10 @@ services:
       JWT_ISSUER: ${URL_PUBLICA_API}/auth/v1
       ORIGENES_PERMITIDOS: ${URL_FRONT},https://localhost,capacitor://localhost,http://localhost
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+      # Crear cuentas (registro público cerrado): API de administración de GoTrue
+      AUTH_ADMIN_URL: http://auth:9999
+      AUTH_ADMIN_KEY: ${SERVICE_ROLE_KEY}
+      ADMIN_PLATAFORMA: ${ADMIN_PLATAFORMA:-}
       TZ: America/Argentina/Buenos_Aires
 
   meta:

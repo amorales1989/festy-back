@@ -19,4 +19,10 @@ export const entorno = {
     // Push (Firebase Cloud Messaging). Sin esto, la tarea de push no se programa.
     firebaseCuenta: process.env.FIREBASE_SERVICE_ACCOUNT || '',
     tareasActivas: process.env.DESACTIVAR_TAREAS !== 'true',
+    // API de administración de GoTrue (crear cuentas: alta de empresas e invitados).
+    // URL donde GoTrue atiende /admin/users y clave con rol service_role.
+    urlAuthAdmin: (process.env.AUTH_ADMIN_URL || `${(process.env.AUTH_URL || '').replace(/\/$/, '')}/auth/v1`).replace(/\/$/, ''),
+    claveAuthAdmin: process.env.AUTH_ADMIN_KEY || '',
+    // Emails de quienes administran la plataforma (dar de alta empresas). Separados por coma.
+    adminsPlataforma: (process.env.ADMIN_PLATAFORMA || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean),
 }
