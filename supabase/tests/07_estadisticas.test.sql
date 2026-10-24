@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(14);
+select plan(17);
 
 insert into auth.users (id, email, aud, role) values
   ('ffffffff-0000-0000-0000-000000000001', 'duenia@estad.test', 'authenticated', 'authenticated'),
@@ -57,13 +57,29 @@ select is((select d->'por_tipo'->0->>'tipo' from est), 'casamiento', 'por tipo d
 select is((select (d->'por_dia_semana'->5->>'eventos')::int from est), 2, 'los dos eventos fueron sábado');
 select is((select d->>'agrupacion' from est), 'semana', 'un mes se agrupa por semana');
 
+-- Por salón: un segundo salón con un evento de 400.000
+insert into k select 'suc2', (api.sp_sucursal_guardar((select id from k where clave='org'), null,
+  jsonb_build_object('salon_id', (select id from k where clave='sal'), 'nombre', 'Norte'))->>'id')::uuid;
+insert into k select 'esp2', (api.sp_espacio_guardar((select id from k where clave='org'), null,
+  jsonb_build_object('sucursal_id', (select id from k where clave='suc2'), 'nombre', 'Salón Norte', 'capacidad_maxima', 100), null)->>'id')::uuid;
+select api.sp_reserva_guardar((select id from k where clave='org'), null,
+  jsonb_build_object('sucursal_id', (select id from k where clave='suc2'), 'cliente_id', (select id from k where clave='cli'), 'titulo', 'Norte',
+                     'tipo_evento', 'corporativo', 'estado', 'confirmada', 'inicio', '2027-03-20 12:00-03', 'fin', '2027-03-20 18:00-03', 'precio_total', 400000),
+  jsonb_build_array(jsonb_build_object('espacio_id', (select id from k where clave='esp2'))));
+select is((api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31')->'resumen'->>'facturado')::numeric, 3400000::numeric,
+  'todos los salones: suma los dos');
+select is((api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31', (select id from k where clave='suc'))->'resumen'->>'facturado')::numeric,
+  3000000::numeric, 'un salón: solo sus eventos');
+select is((api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31', (select id from k where clave='suc2'))->'resumen'->>'cobrado')::numeric,
+  0::numeric, 'un salón: solo los cobros de sus eventos');
+
 -- Personal operativo: ve eventos pero no montos
 select pg_temp.admin();
 insert into public.membresias (organizacion_id, usuario_id, rol_id)
 select (select id from k where clave='org'), 'ffffffff-0000-0000-0000-000000000002',
        (select id from public.roles where organizacion_id = (select id from k where clave='org') and clave = 'operativo');
 select pg_temp.como('ffffffff-0000-0000-0000-000000000002');
-select is((api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31')->'resumen'->>'eventos')::int, 2, 'operativo ve la cantidad de eventos');
+select is((api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31')->'resumen'->>'eventos')::int, 3, 'operativo ve la cantidad de eventos (los tres salones del mes)');
 select is(api.sp_estadisticas((select id from k where clave='org'), '2027-03-01', '2027-03-31')->'resumen'->'facturado', 'null'::jsonb, 'pero no ve montos');
 
 -- Otra empresa

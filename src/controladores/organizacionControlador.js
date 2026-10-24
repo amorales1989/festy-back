@@ -1,6 +1,6 @@
 import * as organizacionRepositorio from '../repositorios/organizacionRepositorio.js'
 import { sinContenido } from '../utilidades/respuestas.js'
-import { nulo } from '../utilidades/valores.js'
+import { nulo, opcional } from '../utilidades/valores.js'
 
 export const contexto = async (req, res) => res.json(await organizacionRepositorio.contexto(req.usuario, req.params.org))
 
@@ -40,4 +40,4 @@ export const importarReservas = async (req, res) =>
     res.json(await organizacionRepositorio.importarReservas(req.usuario, req.params.org, req.body.filas ?? []))
 
 export const estadisticas = async (req, res) =>
-    res.json(await organizacionRepositorio.estadisticas(req.usuario, req.params.org, req.query.desde, req.query.hasta))
+    res.json(await organizacionRepositorio.estadisticas(req.usuario, req.params.org, req.query.desde, req.query.hasta, opcional(req.query.sucursal)))
